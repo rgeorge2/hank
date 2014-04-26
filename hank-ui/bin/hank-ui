@@ -1,0 +1,80 @@
+#!/bin/bash
+
+BINDIR=`dirname "$0"`
+CONFDIR="$BINDIR/../conf"
+UI_JOBJAR=`find $BINDIR/../ -name 'hank-ui-*-jobjar.jar'`
+COMPONENT=$1
+shift
+COMMAND=$1
+shift
+ARGS=$@
+
+# Load environment variables
+ENV_FILE="$CONFDIR"/hank-env.sh
+if [ -f $ENV_FILE ]; then
+  . $ENV_FILE
+else
+  echo "Warning: environment configuration file was not found: $ENV_FILE"
+fi
+
+UI_CLASS='com.liveramp.hank.ui.WebUiServer'
+
+# Default OPTS
+
+HANK_UI_OPTS="$HANK_UI_OPTS -XX:+UseConcMarkSweepGC"
+
+function start-ui {
+  set-opts $HANK_UI_OPTS
+  start-component $UI_JOBJAR $UI_CLASS $ARGS
+}
+
+function stop-ui {
+  stop-component $UI_CLASS
+}
+
+function set-opts {
+  JVM_OPTS=$@
+}
+
+function start-component {
+  JOBJAR=$1
+  shift
+  CLASSNAME=$1
+  shift
+  ARGS=$@
+  COMMAND="java $JVM_OPTS -cp $JOBJAR $CLASSNAME $ARGS"
+  echo "$COMMAND"
+  eval $COMMAND
+}
+
+function stop-component {
+  CLASSNAME=$1
+  for PID in `jps -ml | grep $CLASSNAME | cut -d ' ' -f 1`; do
+    echo "Killing $PID $CLASSNAME"
+    kill $PID
+  done
+}
+
+function main {
+
+  case $COMMAND in
+    "start");;
+    "stop");;
+    "restart");;
+    *) echo "Invalid command: $COMMAND"; exit 1;;
+  esac
+
+  case $COMPONENT in
+    "ui");;
+    *) echo "Invalid component: $COMPONENT" ; exit 1;;
+  esac
+
+  if [ $COMMAND == "restart" ]; then
+    stop-$COMPONENT
+    start-$COMPONENT
+  else
+    $COMMAND-$COMPONENT
+  fi
+}
+
+main
