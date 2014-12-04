@@ -16,11 +16,18 @@
 
 package com.liveramp.hank.coordinator;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
-
-import java.io.IOException;
-import java.util.*;
 
 public class Rings {
 
@@ -34,6 +41,9 @@ public class Rings {
     Set<Host> results = new HashSet<Host>();
     for (Host host : ring.getHosts()) {
       HostDomain domainById = host.getHostDomain(domain);
+      if (domainById == null) {
+        continue;
+      }
       for (HostDomainPartition hdpc : domainById.getPartitions()) {
         if (hdpc.getPartitionNumber() == partition) {
           results.add(host);

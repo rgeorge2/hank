@@ -21,6 +21,9 @@ public abstract class AbstractHost implements Host {
     // TODO: this should be done with a map and caching
     try {
       for (HostDomain hostDomain : getAssignedDomains()) {
+        if (hostDomain == null) {
+          continue;
+        }
         if (hostDomain.getDomain().equals(domain)) {
           return hostDomain;
         }
